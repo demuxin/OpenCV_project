@@ -28,9 +28,13 @@ def find_marker(image):
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
     edged = cv2.Canny(gray, 35, 125)
 
+    # the contour of paper is not closed, so apply close operation(dilate and erode)
+    kernel = np.ones((3, 3), np.uint8)
+    close = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
+
     # find the contours in the edged image and keep the largest one;
     # we'll assume that this is our piece of paper in the image
-    cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cv2.findContours(close.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     c = max(cnts, key = cv2.contourArea)
 
@@ -62,6 +66,7 @@ if __name__ == "__main__":
         cv2.putText(image, "%.2fft" % (inches / 12),
             (image.shape[1] - 200, image.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX,
             2.0, (0, 255, 0), 3)
-        cv2.imshow("image", image)
+        cv2.imshow(imagePath.split('/')[-1], image)
 
-        cv2.waitKey(0)
+    if cv2.waitKey(0) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
